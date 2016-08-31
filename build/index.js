@@ -22,6 +22,10 @@ var _utilsJs = require('./utils.js');
 
 var _utilsJs2 = _interopRequireDefault(_utilsJs);
 
+var _semanticUiMap = require('./semanticUiMap');
+
+var _semanticUiMap2 = _interopRequireDefault(_semanticUiMap);
+
 var ReactNativeCss = (function () {
   function ReactNativeCss() {
     _classCallCheck(this, ReactNativeCss);
@@ -109,10 +113,6 @@ var ReactNativeCss = (function () {
         return (0, _toCamelCase2['default'])(names.join('-'));
       }
 
-      // CSS properties that are not supported by React Native
-      // The list of supported properties is at https://facebook.github.io/react-native/docs/style.html#supported-properties
-      var unsupported = ['display'];
-
       var _ParseCSS = (0, _cssParse2['default'])(_utilsJs2['default'].clean(stylesheetString));
 
       var stylesheet = _ParseCSS.stylesheet;
@@ -124,36 +124,52 @@ var ReactNativeCss = (function () {
       var _iteratorError = undefined;
 
       try {
-        for (var _iterator = stylesheet.rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var _loop = function () {
           var rule = _step.value;
 
-          if (rule.type !== 'rule') continue;
+          if (rule.type !== 'rule') return 'continue';
 
-          var _iteratorNormalCompletion2 = true;
-          var _didIteratorError2 = false;
-          var _iteratorError2 = undefined;
+          _iteratorNormalCompletion2 = true;
+          _didIteratorError2 = false;
+          _iteratorError2 = undefined;
 
           try {
-            var _loop = function () {
+            var _loop2 = function () {
               var selector = _step2.value;
 
+              // TODO: toCamelCase?
               selector = selector.replace(/\.|#/g, '');
               var styles = JSONResult[selector] = JSONResult[selector] || {};
 
-              var declarationsToAdd = [];
+              // Only translate a particular set of Semantic UI classes.
+              var selectorInfo = _semanticUiMap2['default'].selectorInfo[selector];
+              if (!selectorInfo) return 'continue';
+
+              // React Native can only handle certain properties; only translate those we care about.
+              var allowedProps = _semanticUiMap2['default'].propMap[selectorInfo.type];
+
+              // Add optional suffixes, e.g. '.ui.button' + 'text' becomes '.ui.button.text'.
+              // These suffixed selectors will then be processed again using the same declarations as the original.
+              if (selectorInfo.suffixes) {
+                selectorInfo.suffixes.forEach(function (suffix) {
+                  rule.selectors.push(selector + suffix);
+                });
+              }
 
               _iteratorNormalCompletion3 = true;
               _didIteratorError3 = false;
               _iteratorError3 = undefined;
 
               try {
-                var _loop2 = function () {
+                var _loop3 = function () {
                   var declaration = _step3.value;
 
                   if (declaration.type !== 'declaration') return 'continue';
 
                   var value = declaration.value;
                   var property = declaration.property;
+
+                  if (!allowedProps[property]) return 'continue';
 
                   if (specialProperties[property]) {
                     var special = specialProperties[property],
@@ -176,8 +192,6 @@ var ReactNativeCss = (function () {
                     }
                   }
 
-                  if (_utilsJs2['default'].arrayContains(property, unsupported)) return 'continue';
-
                   if (_utilsJs2['default'].arrayContains(property, numberize)) {
                     value = value.replace(/px|\s*/g, '');
 
@@ -195,7 +209,6 @@ var ReactNativeCss = (function () {
                     length = values.length;
 
                     if (length === 1) {
-
                       styles[(0, _toCamelCase2['default'])(property)] = values[0];
                     }
 
@@ -241,9 +254,9 @@ var ReactNativeCss = (function () {
                 };
 
                 for (_iterator3 = rule.declarations[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                  var _ret2 = _loop2();
+                  var _ret3 = _loop3();
 
-                  if (_ret2 === 'continue') continue;
+                  if (_ret3 === 'continue') continue;
                 }
               } catch (err) {
                 _didIteratorError3 = true;
@@ -261,33 +274,10 @@ var ReactNativeCss = (function () {
               }
             };
 
-            for (var _iterator2 = rule.selectors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var _iteratorNormalCompletion3;
+            for (_iterator2 = rule.selectors[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var _ret2 = _loop2();
 
-              var _didIteratorError3;
-
-              var _iteratorError3;
-
-              var _iterator3, _step3;
-
-              var value;
-              var baseDeclaration;
-              var values;
-              var length;
-
-              var _arr;
-
-              var _i;
-
-              var _arr2;
-
-              var _i2;
-
-              var _arr3;
-
-              var _i3;
-
-              _loop();
+              if (_ret2 === 'continue') continue;
             }
           } catch (err) {
             _didIteratorError2 = true;
@@ -303,6 +293,45 @@ var ReactNativeCss = (function () {
               }
             }
           }
+        };
+
+        for (var _iterator = stylesheet.rules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var _iteratorNormalCompletion2;
+
+          var _didIteratorError2;
+
+          var _iteratorError2;
+
+          var _iterator2, _step2;
+
+          var _iteratorNormalCompletion3;
+
+          var _didIteratorError3;
+
+          var _iteratorError3;
+
+          var _iterator3, _step3;
+
+          var value;
+          var baseDeclaration;
+          var values;
+          var length;
+
+          var _arr;
+
+          var _i;
+
+          var _arr2;
+
+          var _i2;
+
+          var _arr3;
+
+          var _i3;
+
+          var _ret = _loop();
+
+          if (_ret === 'continue') continue;
         }
       } catch (err) {
         _didIteratorError = true;

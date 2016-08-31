@@ -1,6 +1,9 @@
 import ParseCSS from 'css-parse';
 import toCamelCase from 'to-camel-case';
 import utils from './utils.js'
+
+import semanticUiMap from './semanticUiMap';
+
 export default class ReactNativeCss {
 
   constructor() {
@@ -79,10 +82,6 @@ export default class ReactNativeCss {
       return toCamelCase(names.join('-'));
     }
 
-    // CSS properties that are not supported by React Native
-    // The list of supported properties is at https://facebook.github.io/react-native/docs/style.html#supported-properties
-    const unsupported = ['display'];
-
     let {stylesheet} = ParseCSS(utils.clean(stylesheetString));
 
     let JSONResult = {};
@@ -91,17 +90,32 @@ export default class ReactNativeCss {
       if (rule.type !== 'rule') continue;
 
       for (let selector of rule.selectors) {
+        // TODO: toCamelCase?
         selector = selector.replace(/\.|#/g, '');
         let styles = (JSONResult[selector] = JSONResult[selector] || {});
 
-        let declarationsToAdd = [];
+        // Only translate a particular set of Semantic UI classes.
+        const selectorInfo = semanticUiMap.selectorInfo[selector];
+        if (!selectorInfo) continue;
+
+        // React Native can only handle certain properties; only translate those we care about.
+        const allowedProps = semanticUiMap.propMap[selectorInfo.type];
+
+        // Add optional suffixes, e.g. '.ui.button' + 'text' becomes '.ui.button.text'.
+        // These suffixed selectors will then be processed again using the same declarations as the original.
+        if (selectorInfo.suffixes) {
+          selectorInfo.suffixes.forEach((suffix) => {
+            rule.selectors.push(selector + suffix);
+          });
+        }
 
         for (let declaration of rule.declarations) {
-
           if (declaration.type !== 'declaration') continue;
 
           let value = declaration.value;
           let property = declaration.property;
+
+          if (!allowedProps[property]) continue;
 
           if (specialProperties[property]) {
             let special = specialProperties[property],
@@ -124,8 +138,6 @@ export default class ReactNativeCss {
             }
           }
 
-          if (utils.arrayContains(property, unsupported)) continue;
-
           if (utils.arrayContains(property, numberize)) {
             var value = value.replace(/px|\s*/g, '');
             styles[toCamelCase(property)] = parseFloat(value);
@@ -145,13 +157,10 @@ export default class ReactNativeCss {
             var length = values.length;
 
             if (length === 1) {
-
               styles[toCamelCase(property)] = values[0]
-
             }
 
             if (length === 2) {
-
               for (let prop of ['Top', 'Bottom']) {
                 styles[directionToPropertyName(property, prop)] = values[0];
               }
@@ -162,7 +171,6 @@ export default class ReactNativeCss {
             }
 
             if (length === 3) {
-
               for (let prop of ['Left', 'Right']) {
                 styles[directionToPropertyName(property, prop)] = values[1];
               }
