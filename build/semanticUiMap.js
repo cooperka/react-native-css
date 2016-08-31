@@ -9,11 +9,18 @@ var BUTTON_TEXT = 'BUTTON_TEXT';
 var semanticUiMap = {
 
   selectorInfo: {
-    uibutton: {
+    uiButton: {
       type: BUTTON,
       suffixes: ['text']
     },
-    uibuttontext: {
+    uiButtonText: {
+      type: BUTTON_TEXT
+    },
+    uiButton_focus: {
+      type: BUTTON,
+      suffixes: ['text']
+    },
+    uiButtonText_focus: {
       type: BUTTON_TEXT
     }
   },
@@ -33,6 +40,7 @@ var commonProps = {
 
 var textProps = {
   'color': true,
+  'font-size': true,
   'font-family': true,
   'font-weight': true,
   'text-align': true
@@ -42,7 +50,8 @@ var textProps = {
 semanticUiMap.propMap[TEXT] = _extends({}, commonProps, textProps);
 
 semanticUiMap.propMap[BUTTON] = _extends({}, commonProps, {
-  'border-radius': true
+  'border-radius': true,
+  'background-color': true
 });
 
 // TODO: Add more supported props

@@ -73,6 +73,8 @@ var ReactNativeCss = (function () {
   }, {
     key: 'toJSS',
     value: function toJSS(stylesheetString) {
+      var _this2 = this;
+
       var directions = ['top', 'right', 'bottom', 'left'];
       var changeArr = ['margin', 'padding', 'border-width', 'border-radius'];
       var numberize = ['width', 'height', 'font-size', 'line-height'].concat(directions);
@@ -137,8 +139,11 @@ var ReactNativeCss = (function () {
             var _loop2 = function () {
               var selector = _step2.value;
 
-              // TODO: toCamelCase?
-              selector = selector.replace(/\.|#/g, '');
+              // Remove leading period and convert to camelCase,
+              // but use an underscore for state selectors (e.g. ':focus') and suffixes (e.g. 'text').
+              selector = selector.split(/[:_ ]/).map(function (token) {
+                return (0, _toCamelCase2['default'])(_this2.removeLeadingPeriod(token));
+              }).join('_');
               var styles = JSONResult[selector] = JSONResult[selector] || {};
 
               // Only translate a particular set of Semantic UI classes.
@@ -148,11 +153,14 @@ var ReactNativeCss = (function () {
               // React Native can only handle certain properties; only translate those we care about.
               var allowedProps = _semanticUiMap2['default'].propMap[selectorInfo.type];
 
-              // Add optional suffixes, e.g. '.ui.button' + 'text' becomes '.ui.button.text'.
-              // These suffixed selectors will then be processed again using the same declarations as the original.
+              // Add optional suffixes to root selectors, e.g. 'uiButton_focus' + 'text' becomes 'uiButton.text_focus'.
+              // These suffixed selectors will then be processed again using the same declarations as the original,
+              // becoming e.g. 'uiButtonText_focus'.
               if (selectorInfo.suffixes) {
                 selectorInfo.suffixes.forEach(function (suffix) {
-                  rule.selectors.push(selector + suffix);
+                  var tokens = selector.split('_');
+                  tokens[0] += '.' + suffix;
+                  rule.selectors.push(tokens.join('_'));
                 });
               }
 
@@ -349,6 +357,14 @@ var ReactNativeCss = (function () {
       }
 
       return JSONResult;
+    }
+  }, {
+    key: 'removeLeadingPeriod',
+    value: function removeLeadingPeriod(str) {
+      if (str.charAt(0) === '.') {
+        return str.substring(1);
+      }
+      return str;
     }
   }]);
 

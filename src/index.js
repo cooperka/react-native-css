@@ -90,8 +90,9 @@ export default class ReactNativeCss {
       if (rule.type !== 'rule') continue;
 
       for (let selector of rule.selectors) {
-        // TODO: toCamelCase?
-        selector = selector.replace(/\.|#/g, '');
+        // Remove leading period and convert to camelCase,
+        // but use an underscore for state selectors (e.g. ':focus') and suffixes (e.g. 'text').
+        selector = selector.split(/[:_ ]/).map(token => toCamelCase(this.removeLeadingPeriod(token))).join('_');
         let styles = (JSONResult[selector] = JSONResult[selector] || {});
 
         // Only translate a particular set of Semantic UI classes.
@@ -101,11 +102,14 @@ export default class ReactNativeCss {
         // React Native can only handle certain properties; only translate those we care about.
         const allowedProps = semanticUiMap.propMap[selectorInfo.type];
 
-        // Add optional suffixes, e.g. '.ui.button' + 'text' becomes '.ui.button.text'.
-        // These suffixed selectors will then be processed again using the same declarations as the original.
+        // Add optional suffixes to root selectors, e.g. 'uiButton_focus' + 'text' becomes 'uiButton.text_focus'.
+        // These suffixed selectors will then be processed again using the same declarations as the original,
+        // becoming e.g. 'uiButtonText_focus'.
         if (selectorInfo.suffixes) {
           selectorInfo.suffixes.forEach((suffix) => {
-            rule.selectors.push(selector + suffix);
+            const tokens = selector.split('_');
+            tokens[0] += '.' + suffix;
+            rule.selectors.push(tokens.join('_'));
           });
         }
 
@@ -197,4 +201,12 @@ export default class ReactNativeCss {
     }
     return JSONResult
   }
+
+  removeLeadingPeriod(str) {
+    if (str.charAt(0) === '.') {
+      return str.substring(1);
+    }
+    return str;
+  }
+
 }
