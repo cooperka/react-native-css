@@ -92,8 +92,7 @@ export default class ReactNativeCss {
       for (let selector of rule.selectors) {
         // Remove leading period and convert to camelCase,
         // but use an underscore for state selectors (e.g. ':focus') and suffixes (e.g. 'text').
-        selector = selector.split(/[:_ ]/).map(token => toCamelCase(this.removeLeadingPeriod(token))).join('_');
-        let styles = (JSONResult[selector] = JSONResult[selector] || {});
+        selector = selector.split(/[:_ ]/).map(token => toCamelCase(utils.removeLeadingPeriod(token))).join('_');
 
         // Only translate a particular set of Semantic UI classes.
         const selectorInfo = semanticUiMap.selectorInfo[selector];
@@ -112,6 +111,8 @@ export default class ReactNativeCss {
             rule.selectors.push(tokens.join('_'));
           });
         }
+
+        let styles = (JSONResult[selector] = JSONResult[selector] || {});
 
         for (let declaration of rule.declarations) {
           if (declaration.type !== 'declaration') continue;
@@ -144,7 +145,7 @@ export default class ReactNativeCss {
 
           if (utils.arrayContains(property, numberize)) {
             var value = value.replace(/px|\s*/g, '');
-            styles[toCamelCase(property)] = parseFloat(value);
+            styles[toCamelCase(property)] = utils.parsePixelValue(value);
           }
 
           else if (utils.arrayContains(property, changeArr)) {
@@ -154,8 +155,8 @@ export default class ReactNativeCss {
 
             var values = value.replace(/px/g, '').split(/[\s,]+/);
 
-            values.forEach(function (value, index, arr) {
-              arr[index] = parseInt(value);
+            values.forEach((value, index, arr) => {
+              arr[index] = utils.parsePixelValue(value);
             });
 
             var length = values.length;
@@ -191,7 +192,7 @@ export default class ReactNativeCss {
           }
           else {
             if (!isNaN(declaration.value) && property !== 'font-weight') {
-              declaration.value = parseFloat(declaration.value);
+              declaration.value = utils.parsePixelValue(declaration.value);
             }
 
             styles[toCamelCase(property)] = declaration.value;
@@ -200,13 +201,6 @@ export default class ReactNativeCss {
       }
     }
     return JSONResult
-  }
-
-  removeLeadingPeriod(str) {
-    if (str.charAt(0) === '.') {
-      return str.substring(1);
-    }
-    return str;
   }
 
 }

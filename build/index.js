@@ -73,8 +73,6 @@ var ReactNativeCss = (function () {
   }, {
     key: 'toJSS',
     value: function toJSS(stylesheetString) {
-      var _this2 = this;
-
       var directions = ['top', 'right', 'bottom', 'left'];
       var changeArr = ['margin', 'padding', 'border-width', 'border-radius'];
       var numberize = ['width', 'height', 'font-size', 'line-height'].concat(directions);
@@ -142,9 +140,8 @@ var ReactNativeCss = (function () {
               // Remove leading period and convert to camelCase,
               // but use an underscore for state selectors (e.g. ':focus') and suffixes (e.g. 'text').
               selector = selector.split(/[:_ ]/).map(function (token) {
-                return (0, _toCamelCase2['default'])(_this2.removeLeadingPeriod(token));
+                return (0, _toCamelCase2['default'])(_utilsJs2['default'].removeLeadingPeriod(token));
               }).join('_');
-              var styles = JSONResult[selector] = JSONResult[selector] || {};
 
               // Only translate a particular set of Semantic UI classes.
               var selectorInfo = _semanticUiMap2['default'].selectorInfo[selector];
@@ -163,6 +160,8 @@ var ReactNativeCss = (function () {
                   rule.selectors.push(tokens.join('_'));
                 });
               }
+
+              var styles = JSONResult[selector] = JSONResult[selector] || {};
 
               _iteratorNormalCompletion3 = true;
               _didIteratorError3 = false;
@@ -203,7 +202,7 @@ var ReactNativeCss = (function () {
                   if (_utilsJs2['default'].arrayContains(property, numberize)) {
                     value = value.replace(/px|\s*/g, '');
 
-                    styles[(0, _toCamelCase2['default'])(property)] = parseFloat(value);
+                    styles[(0, _toCamelCase2['default'])(property)] = _utilsJs2['default'].parsePixelValue(value);
                   } else if (_utilsJs2['default'].arrayContains(property, changeArr)) {
                     baseDeclaration = {
                       type: 'description'
@@ -211,7 +210,7 @@ var ReactNativeCss = (function () {
                     values = value.replace(/px/g, '').split(/[\s,]+/);
 
                     values.forEach(function (value, index, arr) {
-                      arr[index] = parseInt(value);
+                      arr[index] = _utilsJs2['default'].parsePixelValue(value);
                     });
 
                     length = values.length;
@@ -254,7 +253,7 @@ var ReactNativeCss = (function () {
                     }
                   } else {
                     if (!isNaN(declaration.value) && property !== 'font-weight') {
-                      declaration.value = parseFloat(declaration.value);
+                      declaration.value = _utilsJs2['default'].parsePixelValue(declaration.value);
                     }
 
                     styles[(0, _toCamelCase2['default'])(property)] = declaration.value;
@@ -357,14 +356,6 @@ var ReactNativeCss = (function () {
       }
 
       return JSONResult;
-    }
-  }, {
-    key: 'removeLeadingPeriod',
-    value: function removeLeadingPeriod(str) {
-      if (str.charAt(0) === '.') {
-        return str.substring(1);
-      }
-      return str;
     }
   }]);
 

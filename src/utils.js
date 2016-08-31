@@ -33,4 +33,35 @@ export default class Utils {
     var search = string.match(needle);
     return search && search.length > 0;
   }
+
+  /**
+   * @param str {string}
+   * @returns {number}
+   */
+  static parsePixelValue(str) {
+    if (parseFloat(str) == str || str.indexOf('px') >= 0) {
+      return parseFloat(str);
+    }
+
+    if (str.indexOf('em')) {
+      // Use a standard font-size of 16px for conversion;
+      // this can be adjusted later if using something like react-native-extended-stylesheet.
+      return parseFloat(str) * 16;
+    }
+
+    console.warn('[react-native-css] Unknown unit:', str);
+    return 0;
+  }
+
+  /**
+   * @param str {string}
+   * @returns {string}
+   */
+  static removeLeadingPeriod(str) {
+    if (str.charAt(0) === '.') {
+      return str.substring(1);
+    }
+    return str;
+  }
+
 }
